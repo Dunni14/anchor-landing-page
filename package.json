@@ -1,0 +1,26 @@
+{
+  "name": "anchor-bible-meditation-app",
+  "version": "1.0.0",
+  "description": "Landing page for Anchor Bible Meditation App waitlist",
+  "type": "module",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'Static site - no build needed'",
+    "deploy": "netlify deploy --prod"
+  },
+  "keywords": [
+    "bible",
+    "meditation",
+    "app",
+    "waitlist",
+    "landing-page"
+  ],
+  "author": "Dunni Dayo-Kayode",
+  "license": "MIT",
+  "dependencies": {
+    "@netlify/neon": "^1.0.0"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}

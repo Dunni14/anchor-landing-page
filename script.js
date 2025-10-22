@@ -132,11 +132,12 @@ if (contactForm) {
 // Hero form submission handling
 const heroForm = document.querySelector('.hero form');
 if (heroForm) {
-    heroForm.addEventListener('submit', (e) => {
+    heroForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         // Get email input
         const emailInput = heroForm.querySelector('input[type="email"]');
+        const submitButton = heroForm.querySelector('button[type="submit"]');
         const email = emailInput.value.trim();
         
         // Simple validation
@@ -150,52 +151,86 @@ if (heroForm) {
             return;
         }
         
-        // Replace form with success message
-        heroForm.innerHTML = `
-            <div class="success-message">
-                <h3>You're a part of the army now! ✝️</h3>
-                <p>Keep an eye on your email for exclusive launch updates and notifications!</p>
-            </div>
-        `;
+        // Show loading state
+        const originalButtonText = submitButton.textContent;
+        submitButton.textContent = 'Signing up...';
+        submitButton.disabled = true;
+        emailInput.disabled = true;
         
-        // Add styles for success message
-        const successStyles = document.createElement('style');
-        successStyles.textContent = `
-            .success-message {
-                text-align: center;
-                padding: 2rem;
-                animation: fadeInScale 0.5s ease;
-            }
+        try {
+            // Send email to Netlify function
+            const response = await fetch('/.netlify/functions/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email })
+            });
             
-            .success-message h3 {
-                margin: 0 0 0.5rem 0;
-                font-size: 1.5rem;
-                font-weight: 600;
-                color: white;
-            }
+            const data = await response.json();
             
-            .success-message p {
-                margin: 0;
-                color: white;
-                opacity: 0.9;
-                font-size: 1rem;
-            }
-            
-            @keyframes fadeInScale {
-                from {
-                    opacity: 0;
-                    transform: scale(0.9);
+            if (data.success) {
+                // Replace form with success message
+                heroForm.innerHTML = `
+                    <div class="success-message">
+                        <h3>You're a part of the army now! ✝️</h3>
+                        <p>Keep an eye on your email for exclusive launch updates and notifications!</p>
+                    </div>
+                `;
+                
+                // Add styles for success message
+                const successStyles = document.createElement('style');
+                successStyles.textContent = `
+                    .success-message {
+                        text-align: center;
+                        padding: 2rem;
+                        animation: fadeInScale 0.5s ease;
+                    }
+                    
+                    .success-message h3 {
+                        margin: 0 0 0.5rem 0;
+                        font-size: 1.5rem;
+                        font-weight: 600;
+                        color: white;
+                    }
+                    
+                    .success-message p {
+                        margin: 0;
+                        color: white;
+                        opacity: 0.9;
+                        font-size: 1rem;
+                    }
+                    
+                    @keyframes fadeInScale {
+                        from {
+                            opacity: 0;
+                            transform: scale(0.9);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: scale(1);
+                        }
+                    }
+                `;
+                
+                if (!document.querySelector('#success-message-styles')) {
+                    successStyles.id = 'success-message-styles';
+                    document.head.appendChild(successStyles);
                 }
-                to {
-                    opacity: 1;
-                    transform: scale(1);
-                }
+            } else {
+                throw new Error(data.error || 'Signup failed');
             }
-        `;
-        
-        if (!document.querySelector('#success-message-styles')) {
-            successStyles.id = 'success-message-styles';
-            document.head.appendChild(successStyles);
+            
+        } catch (error) {
+            console.error('Signup error:', error);
+            
+            // Reset form state
+            submitButton.textContent = originalButtonText;
+            submitButton.disabled = false;
+            emailInput.disabled = false;
+            
+            // Show error message
+            showNotification('Something went wrong. Please try again.', 'error');
         }
     });
 }
